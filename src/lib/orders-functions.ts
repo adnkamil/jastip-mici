@@ -1,0 +1,154 @@
+import { createServerFn } from '@tanstack/react-start'
+import { and, eq } from 'drizzle-orm'
+import { z } from 'zod'
+import { db } from '../db'
+import { events, items, orders } from '../db/schema'
+import { getSessionUser } from './auth'
+
+async function requireUser() {
+  const user = await getSessionUser()
+  if (!user) throw new Error('Belum login')
+  return user
+}
+
+async function assertEventOwnership(eventId: string, userId: string) {
+  const event = await db.query.events.findFirst({
+    where: and(eq(events.id, eventId), eq(events.userId, userId)),
+  })
+  if (!event) throw new Error('Event tidak ditemukan')
+  return event
+}
+
+const itemInputSchema = z.object({
+  name: z.string().min(1, 'Nama barang wajib diisi'),
+  originalPrice: z.number().nonnegative(),
+  fee: z.number().nonnegative(),
+})
+
+const createOrderSchema = z.object({
+  eventId: z.uuid(),
+  customerName: z.string().min(1, 'Nama pelanggan wajib diisi'),
+  paymentStatus: z.enum(['unpaid', 'paid']),
+  items: z.array(itemInputSchema).min(1, 'Minimal satu barang'),
+})
+
+export const createOrder = createServerFn({ method: 'POST' })
+  .validator(createOrderSchema)
+  .handler(async ({ data }) => {
+    const user = await requireUser()
+    await assertEventOwnership(data.eventId, user.id)
+
+    const [order] = await db
+      .insert(orders)
+      .values({
+        eventId: data.eventId,
+        customerName: data.customerName,
+        paymentStatus: data.paymentStatus,
+      })
+      .returning()
+
+    await db.insert(items).values(
+      data.items.map((item) => ({
+        orderId: order.id,
+        name: item.name,
+        originalPrice: item.originalPrice.toString(),
+        fee: item.fee.toString(),
+      })),
+    )
+
+    return order
+  })
+
+export const updateOrderPaymentStatus = createServerFn({ method: 'POST' })
+  .validator(
+    z.object({ orderId: z.uuid(), paymentStatus: z.enum(['unpaid', 'paid']) }),
+  )
+  .handler(async ({ data }) => {
+    const user = await requireUser()
+
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.id, data.orderId),
+      with: { event: true },
+    })
+    if (!order || order.event.userId !== user.id) {
+      throw new Error('Pesanan tidak ditemukan')
+    }
+
+    await db
+      .update(orders)
+      .set({ paymentStatus: data.paymentStatus, updatedAt: new Date() })
+      .where(eq(orders.id, data.orderId))
+  })
+
+const updateOrderSchema = z.object({
+  orderId: z.uuid(),
+  customerName: z.string().min(1, 'Nama pelanggan wajib diisi'),
+  paymentStatus: z.enum(['unpaid', 'paid']),
+  items: z.array(itemInputSchema).min(1, 'Minimal satu barang'),
+})
+
+export const updateOrder = createServerFn({ method: 'POST' })
+  .validator(updateOrderSchema)
+  .handler(async ({ data }) => {
+    const user = await requireUser()
+
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.id, data.orderId),
+      with: { event: true },
+    })
+    if (!order || order.event.userId !== user.id) {
+      throw new Error('Pesanan tidak ditemukan')
+    }
+
+    await db
+      .update(orders)
+      .set({
+        customerName: data.customerName,
+        paymentStatus: data.paymentStatus,
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, data.orderId))
+
+    // Items aren't individually tracked by the form, so replace the full set.
+    await db.delete(items).where(eq(items.orderId, data.orderId))
+    await db.insert(items).values(
+      data.items.map((item) => ({
+        orderId: data.orderId,
+        name: item.name,
+        originalPrice: item.originalPrice.toString(),
+        fee: item.fee.toString(),
+      })),
+    )
+  })
+
+export const deleteOrder = createServerFn({ method: 'POST' })
+  .validator(z.object({ orderId: z.uuid() }))
+  .handler(async ({ data }) => {
+    const user = await requireUser()
+
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.id, data.orderId),
+      with: { event: true },
+    })
+    if (!order || order.event.userId !== user.id) {
+      throw new Error('Pesanan tidak ditemukan')
+    }
+
+    await db.delete(orders).where(eq(orders.id, data.orderId))
+  })
+
+export const deleteItem = createServerFn({ method: 'POST' })
+  .validator(z.object({ itemId: z.uuid() }))
+  .handler(async ({ data }) => {
+    const user = await requireUser()
+
+    const item = await db.query.items.findFirst({
+      where: eq(items.id, data.itemId),
+      with: { order: { with: { event: true } } },
+    })
+    if (!item || item.order.event.userId !== user.id) {
+      throw new Error('Barang tidak ditemukan')
+    }
+
+    await db.delete(items).where(eq(items.id, data.itemId))
+  })
