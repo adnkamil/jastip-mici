@@ -7,70 +7,74 @@
 }
 
 :root {
-  --sea-ink: #173a40;
-  --sea-ink-soft: #416166;
-  --lagoon: #4fb8b2;
-  --lagoon-deep: #328f97;
-  --palm: #2f6a4a;
-  --sand: #e7f0e8;
-  --foam: #f3faf5;
-  --surface: rgba(255, 255, 255, 0.74);
-  --surface-strong: rgba(255, 255, 255, 0.9);
-  --line: rgba(23, 58, 64, 0.14);
-  --inset-glint: rgba(255, 255, 255, 0.82);
-  --kicker: rgba(47, 106, 74, 0.9);
-  --bg-base: #e7f3ec;
-  --header-bg: rgba(251, 255, 248, 0.84);
-  --chip-bg: rgba(255, 255, 255, 0.8);
-  --chip-line: rgba(47, 106, 74, 0.18);
-  --link-bg-hover: rgba(255, 255, 255, 0.9);
-  --hero-a: rgba(79, 184, 178, 0.36);
-  --hero-b: rgba(47, 106, 74, 0.2);
+  /* ==========================================================
+     WARNA UTAMA — ganti nilai di sini saja untuk mengubah
+     seluruh tema aplikasi (semua halaman + app-shell ikut ganti).
+     ========================================================== */
+  --brand-bg: #f3e9d7; /* latar halaman (krem) */
+  --brand-bg-soft: #f8f1e1; /* krem lebih terang, dipakai di gradient */
+  --brand-surface: #fdf9ef; /* kartu/panel, hampir putih krem */
+  --brand-ink: #21332f; /* teks utama & judul */
+  --brand-ink-soft: #5c6b62; /* teks sekunder */
+  --brand-ink-mute: #8b978f; /* teks tersier / placeholder */
+  --brand-accent: #b6584b; /* aksen coral/merah bata (tombol, link) */
+  --brand-accent-strong: #9c463b; /* aksen lebih gelap (hover) */
+  --brand-accent-soft: rgba(182, 88, 75, 0.14); /* aksen versi transparan */
+  --brand-gold: #8a6a3a; /* aksen kedua (opsional) */
+  --brand-border: rgba(33, 51, 47, 0.14); /* garis pembatas */
+  --brand-glint: rgba(255, 255, 255, 0.85); /* highlight tipis di kartu */
+
+  /* -- turunan otomatis dari warna utama di atas, tidak perlu diubah -- */
+  --sea-ink: var(--brand-ink);
+  --sea-ink-soft: var(--brand-ink-soft);
+  --lagoon: var(--brand-accent);
+  --lagoon-deep: var(--brand-accent-strong);
+  --palm: var(--brand-gold);
+  --sand: var(--brand-bg-soft);
+  --foam: var(--brand-surface);
+  --surface: color-mix(in oklab, var(--brand-surface) 74%, transparent);
+  --surface-strong: color-mix(in oklab, var(--brand-surface) 90%, transparent);
+  --line: var(--brand-border);
+  --inset-glint: var(--brand-glint);
+  --kicker: var(--brand-accent);
+  --bg-base: var(--brand-bg);
+  --header-bg: color-mix(in oklab, var(--brand-surface) 84%, transparent);
+  --chip-bg: color-mix(in oklab, var(--brand-surface) 80%, transparent);
+  --chip-line: color-mix(in oklab, var(--brand-accent) 20%, transparent);
+  --link-bg-hover: color-mix(in oklab, var(--brand-surface) 90%, transparent);
+  --hero-a: color-mix(in oklab, var(--brand-accent) 32%, transparent);
+  --hero-b: color-mix(in oklab, var(--brand-gold) 20%, transparent);
 }
 
 :root[data-theme='dark'] {
-  --sea-ink: #d7ece8;
-  --sea-ink-soft: #afcdc8;
-  --lagoon: #60d7cf;
-  --lagoon-deep: #8de5db;
-  --palm: #6ec89a;
-  --sand: #0f1a1e;
-  --foam: #101d22;
-  --surface: rgba(16, 30, 34, 0.8);
-  --surface-strong: rgba(15, 27, 31, 0.92);
-  --line: rgba(141, 229, 219, 0.18);
-  --inset-glint: rgba(194, 247, 238, 0.14);
-  --kicker: #b8efe5;
-  --bg-base: #0a1418;
-  --header-bg: rgba(10, 20, 24, 0.8);
-  --chip-bg: rgba(13, 28, 32, 0.9);
-  --chip-line: rgba(141, 229, 219, 0.24);
-  --link-bg-hover: rgba(24, 44, 49, 0.8);
-  --hero-a: rgba(96, 215, 207, 0.18);
-  --hero-b: rgba(110, 200, 154, 0.12);
+  --brand-bg: #140f0c;
+  --brand-bg-soft: #1c1512;
+  --brand-surface: #201613;
+  --brand-ink: #f1e8da;
+  --brand-ink-soft: #c9bda9;
+  --brand-ink-mute: #8f8578;
+  --brand-accent: #e08a75;
+  --brand-accent-strong: #f2a68f;
+  --brand-accent-soft: rgba(224, 138, 117, 0.18);
+  --brand-gold: #c9a15a;
+  --brand-border: rgba(241, 232, 218, 0.16);
+  --brand-glint: rgba(255, 235, 220, 0.14);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --sea-ink: #d7ece8;
-    --sea-ink-soft: #afcdc8;
-    --lagoon: #60d7cf;
-    --lagoon-deep: #8de5db;
-    --palm: #6ec89a;
-    --sand: #0f1a1e;
-    --foam: #101d22;
-    --surface: rgba(16, 30, 34, 0.8);
-    --surface-strong: rgba(15, 27, 31, 0.92);
-    --line: rgba(141, 229, 219, 0.18);
-    --inset-glint: rgba(194, 247, 238, 0.14);
-    --kicker: #b8efe5;
-    --bg-base: #0a1418;
-    --header-bg: rgba(10, 20, 24, 0.8);
-    --chip-bg: rgba(13, 28, 32, 0.9);
-    --chip-line: rgba(141, 229, 219, 0.24);
-    --link-bg-hover: rgba(24, 44, 49, 0.8);
-    --hero-a: rgba(96, 215, 207, 0.18);
-    --hero-b: rgba(110, 200, 154, 0.12);
+    --brand-bg: #140f0c;
+    --brand-bg-soft: #1c1512;
+    --brand-surface: #201613;
+    --brand-ink: #f1e8da;
+    --brand-ink-soft: #c9bda9;
+    --brand-ink-mute: #8f8578;
+    --brand-accent: #e08a75;
+    --brand-accent-strong: #f2a68f;
+    --brand-accent-soft: rgba(224, 138, 117, 0.18);
+    --brand-gold: #c9a15a;
+    --brand-border: rgba(241, 232, 218, 0.16);
+    --brand-glint: rgba(255, 235, 220, 0.14);
   }
 }
 
@@ -94,7 +98,7 @@ body {
     radial-gradient(1050px 620px at 112% -12%, var(--hero-b), transparent 62%),
     radial-gradient(
       720px 380px at 50% 115%,
-      rgba(79, 184, 178, 0.1),
+      color-mix(in oklab, var(--brand-accent) 10%, transparent),
       transparent 68%
     ),
     linear-gradient(
@@ -123,10 +127,14 @@ body::before {
     ),
     radial-gradient(
       circle at 78% 26%,
-      rgba(79, 184, 178, 0.2),
+      color-mix(in oklab, var(--brand-accent) 20%, transparent),
       transparent 42%
     ),
-    radial-gradient(circle at 42% 82%, rgba(47, 106, 74, 0.14), transparent 36%);
+    radial-gradient(
+      circle at 42% 82%,
+      color-mix(in oklab, var(--brand-gold) 14%, transparent),
+      transparent 36%
+    );
 }
 
 body::after {
@@ -448,7 +456,7 @@ a {
   height: 2px;
   transform: scaleX(0);
   transform-origin: left;
-  background: linear-gradient(90deg, var(--lagoon), #7ed3bf);
+  background: linear-gradient(90deg, var(--lagoon), var(--brand-gold));
   transition: transform 170ms ease;
 }
 
@@ -468,18 +476,18 @@ a {
   }
 }
 
-/* App screens (auth + _app) use a dedicated dark palette matching the product mockups. */
+/* App screens (auth + _app) share the same brand tokens as the rest of the site. */
 :root {
-  --app-bg: #0b1220;
-  --app-card: #131c30;
-  --app-card-hover: #182342;
-  --app-border: rgba(255, 255, 255, 0.08);
-  --app-text: #f5f7fb;
-  --app-text-soft: #9aa5b8;
-  --app-text-mute: #6b7688;
-  --app-accent: #3b82f6;
-  --app-accent-strong: #2563eb;
-  --app-accent-soft: rgba(59, 130, 246, 0.16);
+  --app-bg: var(--brand-bg);
+  --app-card: var(--brand-surface);
+  --app-card-hover: color-mix(in oklab, var(--brand-surface) 92%, var(--brand-ink) 8%);
+  --app-border: var(--brand-border);
+  --app-text: var(--brand-ink);
+  --app-text-soft: var(--brand-ink-soft);
+  --app-text-mute: var(--brand-ink-mute);
+  --app-accent: var(--brand-accent);
+  --app-accent-strong: var(--brand-accent-strong);
+  --app-accent-soft: var(--brand-accent-soft);
   --app-success: #22c55e;
   --app-success-soft: rgba(34, 197, 94, 0.14);
   --app-warning: #f59e0b;
@@ -500,14 +508,17 @@ a {
   border-radius: 1rem;
 }
 
-.app-input {
-  width: 100%;
-  border: 1px solid var(--app-border);
-  border-radius: 0.75rem;
-  background: var(--app-card);
-  color: var(--app-text);
-  padding: 0.7rem 0.9rem;
-  outline: none;
+/* @layer components ensures utility classes like pl-9/pr-10 always win over this padding. */
+@layer components {
+  .app-input {
+    width: 100%;
+    border: 1px solid var(--app-border);
+    border-radius: 0.75rem;
+    background: var(--app-card);
+    color: var(--app-text);
+    padding: 0.7rem 0.9rem;
+    outline: none;
+  }
 }
 
 .app-input::placeholder {

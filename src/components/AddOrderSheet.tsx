@@ -111,9 +111,9 @@ export default function AddOrderSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/60">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60">
       <div
-        className="app-shell max-h-[90vh] w-full overflow-y-auto rounded-t-3xl p-5"
+        className="app-shell mx-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl p-5"
         style={{ borderTop: '1px solid var(--app-border)' }}
       >
         <div className="mb-4 flex items-center justify-between">
