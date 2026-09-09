@@ -28,7 +28,7 @@ const itemInputSchema = z.object({
 const createOrderSchema = z.object({
   eventId: z.uuid(),
   customerName: z.string().min(1, 'Nama pelanggan wajib diisi'),
-  paymentStatus: z.enum(['unpaid', 'paid']),
+  paymentStatus: z.enum(['unpaid', 'paid', 'shipped']).default('unpaid'),
   items: z.array(itemInputSchema).min(1, 'Minimal satu barang'),
 })
 
@@ -43,7 +43,7 @@ export const createOrder = createServerFn({ method: 'POST' })
       .values({
         eventId: data.eventId,
         customerName: data.customerName,
-        paymentStatus: data.paymentStatus,
+        paymentStatus: data.paymentStatus ?? 'unpaid',
       })
       .returning()
 
@@ -61,7 +61,10 @@ export const createOrder = createServerFn({ method: 'POST' })
 
 export const updateOrderPaymentStatus = createServerFn({ method: 'POST' })
   .validator(
-    z.object({ orderId: z.uuid(), paymentStatus: z.enum(['unpaid', 'paid']) }),
+    z.object({
+      orderId: z.uuid(),
+      paymentStatus: z.enum(['unpaid', 'paid', 'shipped']),
+    }),
   )
   .handler(async ({ data }) => {
     const user = await requireUser()
@@ -83,7 +86,7 @@ export const updateOrderPaymentStatus = createServerFn({ method: 'POST' })
 const updateOrderSchema = z.object({
   orderId: z.uuid(),
   customerName: z.string().min(1, 'Nama pelanggan wajib diisi'),
-  paymentStatus: z.enum(['unpaid', 'paid']),
+  paymentStatus: z.enum(['unpaid', 'paid', 'shipped']),
   items: z.array(itemInputSchema).min(1, 'Minimal satu barang'),
 })
 

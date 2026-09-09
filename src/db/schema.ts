@@ -10,7 +10,11 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core'
 
-export const paymentStatusEnum = pgEnum('payment_status', ['unpaid', 'paid'])
+export const paymentStatusEnum = pgEnum('payment_status', [
+  'unpaid',
+  'paid',
+  'shipped',
+])
 
 // USERS & AUTH
 export const users = pgTable('users', {

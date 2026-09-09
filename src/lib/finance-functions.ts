@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { db } from '../db'
 import { events, items, orders } from '../db/schema'
 import { getSessionUser } from './auth'
@@ -16,8 +16,8 @@ export const getFinanceSummary = createServerFn({ method: 'GET' }).handler(
 
     const [totals] = await db
       .select({
-        totalIn: sql<string>`coalesce(sum(case when ${orders.paymentStatus} = 'paid' then ${items.originalPrice} + ${items.fee} else 0 end), 0)`,
-        totalOut: sql<string>`coalesce(sum(case when ${orders.paymentStatus} = 'paid' then ${items.originalPrice} else 0 end), 0)`,
+        totalIn: sql<string>`coalesce(sum(case when ${orders.paymentStatus} in ('paid', 'shipped') then ${items.originalPrice} + ${items.fee} else 0 end), 0)`,
+        totalOut: sql<string>`coalesce(sum(case when ${orders.paymentStatus} in ('paid', 'shipped') then ${items.originalPrice} else 0 end), 0)`,
         netProfit: sql<string>`coalesce(sum(${items.fee}), 0)`,
       })
       .from(events)
@@ -25,7 +25,7 @@ export const getFinanceSummary = createServerFn({ method: 'GET' }).handler(
       .leftJoin(items, eq(items.orderId, orders.id))
       .where(eq(events.userId, user.id))
 
-    // Monthly revenue chart only counts orders that are fully paid.
+    // Monthly revenue chart counts orders that are paid or shipped.
     const monthly = await db
       .select({
         month: sql<string>`to_char(${orders.createdAt}, 'YYYY-MM')`,
@@ -34,7 +34,12 @@ export const getFinanceSummary = createServerFn({ method: 'GET' }).handler(
       .from(events)
       .innerJoin(orders, eq(orders.eventId, events.id))
       .innerJoin(items, eq(items.orderId, orders.id))
-      .where(and(eq(events.userId, user.id), eq(orders.paymentStatus, 'paid')))
+      .where(
+        and(
+          eq(events.userId, user.id),
+          inArray(orders.paymentStatus, ['paid', 'shipped']),
+        ),
+      )
       .groupBy(sql`to_char(${orders.createdAt}, 'YYYY-MM')`)
       .orderBy(sql`to_char(${orders.createdAt}, 'YYYY-MM')`)
 
@@ -42,8 +47,8 @@ export const getFinanceSummary = createServerFn({ method: 'GET' }).handler(
       .select({
         eventId: events.id,
         eventName: events.name,
-        amountIn: sql<string>`coalesce(sum(case when ${orders.paymentStatus} = 'paid' then ${items.originalPrice} + ${items.fee} else 0 end), 0)`,
-        amountOut: sql<string>`coalesce(sum(case when ${orders.paymentStatus} = 'paid' then ${items.originalPrice} else 0 end), 0)`,
+        amountIn: sql<string>`coalesce(sum(case when ${orders.paymentStatus} in ('paid', 'shipped') then ${items.originalPrice} + ${items.fee} else 0 end), 0)`,
+        amountOut: sql<string>`coalesce(sum(case when ${orders.paymentStatus} in ('paid', 'shipped') then ${items.originalPrice} else 0 end), 0)`,
         profit: sql<string>`coalesce(sum(${items.fee}), 0)`,
       })
       .from(events)

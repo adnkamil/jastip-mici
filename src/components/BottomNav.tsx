@@ -28,8 +28,9 @@ export function useShowBottomNav() {
 export default function BottomNav() {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t"
+      className="fixed bottom-0 left-1/2 z-40 w-full -translate-x-1/2 border-t"
       style={{
+        maxWidth: 480,
         borderColor: 'var(--app-border)',
         background: 'var(--app-card)',
         paddingBottom: 'env(safe-area-inset-bottom)',

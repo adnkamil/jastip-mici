@@ -17,7 +17,7 @@ interface ItemDraft {
 
 export interface AddOrderSheetValue {
   customerName: string
-  paymentStatus: 'unpaid' | 'paid'
+  paymentStatus?: 'unpaid' | 'paid' | 'shipped'
   items: Array<ItemDraft>
 }
 
@@ -30,7 +30,7 @@ interface AddOrderSheetProps {
   onClose: () => void
   onSubmit: (value: {
     customerName: string
-    paymentStatus: 'unpaid' | 'paid'
+    paymentStatus: 'unpaid' | 'paid' | 'shipped'
     items: Array<{ name: string; originalPrice: number; fee: number }>
   }) => Promise<void>
 }
@@ -46,10 +46,11 @@ export default function AddOrderSheet({
   onClose,
   onSubmit,
 }: AddOrderSheetProps) {
+  const isEdit = Boolean(initialValue && title.toLowerCase().includes('edit'))
   const [customerName, setCustomerName] = useState(
     initialValue?.customerName ?? '',
   )
-  const [paymentStatus, setPaymentStatus] = useState<'unpaid' | 'paid'>(
+  const [paymentStatus, setPaymentStatus] = useState<'unpaid' | 'paid' | 'shipped'>(
     initialValue?.paymentStatus ?? 'unpaid',
   )
   const [items, setItems] = useState<Array<ItemDraft>>(
@@ -211,19 +212,24 @@ export default function AddOrderSheet({
             </p>
           </div>
 
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Status pembayaran
-            <select
-              value={paymentStatus}
-              onChange={(e) =>
-                setPaymentStatus(e.target.value as 'unpaid' | 'paid')
-              }
-              className="app-input"
-            >
-              <option value="unpaid">Belum Lunas</option>
-              <option value="paid">Lunas</option>
-            </select>
-          </label>
+          {isEdit && (
+            <label className="flex flex-col gap-1 text-sm font-medium">
+              Status pembayaran
+              <select
+                value={paymentStatus}
+                onChange={(e) =>
+                  setPaymentStatus(
+                    e.target.value as 'unpaid' | 'paid' | 'shipped',
+                  )
+                }
+                className="app-input"
+              >
+                <option value="unpaid">Belum Lunas</option>
+                <option value="paid">Lunas</option>
+                <option value="shipped">Dikirim</option>
+              </select>
+            </label>
+          )}
 
           {error && (
             <p className="text-sm" style={{ color: 'var(--app-danger)' }}>

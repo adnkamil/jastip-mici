@@ -497,9 +497,16 @@ a {
 }
 
 .app-shell {
-  min-height: 100vh;
-  background: var(--app-bg);
+  position: relative;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+  background: var(--app-card);
   color: var(--app-text);
+  box-shadow:
+    0 0 0 1px var(--app-border),
+    0 8px 48px rgba(0, 0, 0, 0.12);
 }
 
 .app-card {
@@ -595,6 +602,16 @@ a {
 .app-badge-warning {
   background: var(--app-warning-soft);
   color: var(--app-warning);
+}
+
+.app-badge-info {
+  background: rgba(59, 130, 246, 0.14);
+  color: #2563eb;
+}
+
+:root[data-theme='dark'] .app-badge-info {
+  background: rgba(59, 130, 246, 0.22);
+  color: #60a5fa;
 }
 
 .app-switch {

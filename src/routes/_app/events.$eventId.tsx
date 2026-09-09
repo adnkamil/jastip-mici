@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import {
   queryOptions,
   useQueryClient,
@@ -7,13 +8,17 @@ import {
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeft,
+  Check,
+  ChevronDown,
   ChevronRight,
-  CopyPlus,
   MoreVertical,
   Pencil,
   Plus,
   Search,
+  Settings,
   Tag,
+  Trash2,
+  X,
 } from 'lucide-react'
 import { z } from 'zod'
 import AddOrderSheet from '../../components/AddOrderSheet'
@@ -21,6 +26,7 @@ import { getEventDetail, updateEvent } from '../../lib/events-functions'
 import { listFeeRules } from '../../lib/fee-rules-functions'
 import {
   createOrder,
+  deleteOrder,
   updateOrder,
   updateOrderPaymentStatus,
 } from '../../lib/orders-functions'
@@ -62,6 +68,11 @@ function EventDetailPage() {
     | null
   >(addOrder ? { type: 'create' } : null)
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<
+    'unpaid' | 'paid' | 'shipped' | null
+  >(null)
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const query = queryOptions({
     queryKey: ['event', eventId],
@@ -76,7 +87,7 @@ function EventDetailPage() {
   const { data: feeRules } = useSuspenseQuery(feeRulesQuery)
 
   const amountIn = event.orders
-    .filter((o) => o.paymentStatus === 'paid')
+    .filter((o) => o.paymentStatus === 'paid' || o.paymentStatus === 'shipped')
     .flatMap((o) => o.items)
     .reduce(
       (sum, item) => sum + Number(item.originalPrice) + Number(item.fee),
@@ -90,9 +101,19 @@ function EventDetailPage() {
       0,
     )
 
-  const filteredOrders = event.orders.filter((order) =>
-    order.customerName.toLowerCase().includes(search.toLowerCase()),
-  )
+  const unpaidCount = event.orders.filter((o) => o.paymentStatus === 'unpaid').length
+  const paidCount = event.orders.filter((o) => o.paymentStatus === 'paid').length
+  const shippedCount = event.orders.filter((o) => o.paymentStatus === 'shipped').length
+
+  const filteredOrders = event.orders.filter((order) => {
+    const matchesSearch = order.customerName
+      .toLowerCase()
+      .includes(search.toLowerCase())
+    const matchesStatus = statusFilter
+      ? order.paymentStatus === statusFilter
+      : true
+    return matchesSearch && matchesStatus
+  })
 
   const editingOrder =
     sheetMode?.type === 'edit'
@@ -101,7 +122,7 @@ function EventDetailPage() {
 
   async function handleCreateOrder(value: {
     customerName: string
-    paymentStatus: 'unpaid' | 'paid'
+    paymentStatus: 'unpaid' | 'paid' | 'shipped'
     items: Array<{ name: string; originalPrice: number; fee: number }>
   }) {
     await createOrder({ data: { eventId, ...value } })
@@ -115,7 +136,7 @@ function EventDetailPage() {
     orderId: string,
     value: {
       customerName: string
-      paymentStatus: 'unpaid' | 'paid'
+      paymentStatus: 'unpaid' | 'paid' | 'shipped'
       items: Array<{ name: string; originalPrice: number; fee: number }>
     },
   ) {
@@ -125,14 +146,28 @@ function EventDetailPage() {
     setSheetMode(null)
   }
 
-  async function togglePaymentStatus(
+  async function handlePaymentStatusChange(
     orderId: string,
-    current: 'unpaid' | 'paid',
+    paymentStatus: 'unpaid' | 'paid' | 'shipped',
   ) {
     await updateOrderPaymentStatus({
-      data: { orderId, paymentStatus: current === 'paid' ? 'unpaid' : 'paid' },
+      data: { orderId, paymentStatus },
     })
     await queryClient.invalidateQueries({ queryKey: ['event', eventId] })
+    await queryClient.invalidateQueries({ queryKey: ['events'] })
+  }
+
+  async function confirmDeleteOrder() {
+    if (!deletingOrderId) return
+    setIsDeleting(true)
+    try {
+      await deleteOrder({ data: { orderId: deletingOrderId } })
+      await queryClient.invalidateQueries({ queryKey: ['event', eventId] })
+      await queryClient.invalidateQueries({ queryKey: ['events'] })
+      setDeletingOrderId(null)
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   async function handleFeeRuleChange(feeRuleId: string) {
@@ -214,7 +249,7 @@ function EventDetailPage() {
         </select>
       </div>
 
-      <div className="relative mb-4">
+      <div className="relative mb-3">
         <span
           className="pointer-events-none absolute inset-y-0 left-3 flex items-center"
           style={{ color: 'var(--app-text-mute)' }}
@@ -229,10 +264,84 @@ function EventDetailPage() {
         />
       </div>
 
+      {/* Filter Status Pembayaran */}
+      <div className="mb-4 grid grid-cols-3 gap-2">
+        <button
+          type="button"
+          onClick={() =>
+            setStatusFilter(statusFilter === 'unpaid' ? null : 'unpaid')
+          }
+          className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-1 text-xs font-semibold transition-all border ${
+            statusFilter === 'unpaid'
+              ? 'border-[var(--app-warning)] bg-[var(--app-warning)] text-white shadow-sm'
+              : 'border-[var(--app-border)] bg-[var(--app-card)] text-[var(--app-text-soft)] hover:border-[var(--app-warning)]'
+          }`}
+        >
+          <span>Belum lunas</span>
+          <span
+            className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+              statusFilter === 'unpaid'
+                ? 'bg-white/20 text-white'
+                : 'bg-[var(--app-warning-soft)] text-[var(--app-warning)]'
+            }`}
+          >
+            {unpaidCount}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            setStatusFilter(statusFilter === 'paid' ? null : 'paid')
+          }
+          className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-1 text-xs font-semibold transition-all border ${
+            statusFilter === 'paid'
+              ? 'border-[var(--app-success)] bg-[var(--app-success)] text-white shadow-sm'
+              : 'border-[var(--app-border)] bg-[var(--app-card)] text-[var(--app-text-soft)] hover:border-[var(--app-success)]'
+          }`}
+        >
+          <span>Lunas</span>
+          <span
+            className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+              statusFilter === 'paid'
+                ? 'bg-white/20 text-white'
+                : 'bg-[var(--app-success-soft)] text-[var(--app-success)]'
+            }`}
+          >
+            {paidCount}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            setStatusFilter(statusFilter === 'shipped' ? null : 'shipped')
+          }
+          className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-1 text-xs font-semibold transition-all border ${
+            statusFilter === 'shipped'
+              ? 'border-[#2563eb] bg-[#2563eb] text-white shadow-sm'
+              : 'border-[var(--app-border)] bg-[var(--app-card)] text-[var(--app-text-soft)] hover:border-[#2563eb]'
+          }`}
+        >
+          <span>Dikirim</span>
+          <span
+            className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+              statusFilter === 'shipped'
+                ? 'bg-white/20 text-white'
+                : 'bg-[rgba(59,130,246,0.14)] text-[#2563eb]'
+            }`}
+          >
+            {shippedCount}
+          </span>
+        </button>
+      </div>
+
       <div className="flex flex-col gap-3">
         {filteredOrders.length === 0 && (
           <p className="text-sm" style={{ color: 'var(--app-text-soft)' }}>
-            Belum ada pesanan.
+            {statusFilter || search.trim()
+              ? 'Tidak ada pesanan yang sesuai filter.'
+              : 'Belum ada pesanan.'}
           </p>
         )}
         {filteredOrders.map((order) => {
@@ -255,45 +364,38 @@ function EventDetailPage() {
                     {order.items.length} item · {formatIDR(orderTotal)}
                   </p>
                 </span>
-                <button
-                  type="button"
+                <div
+                  className="relative flex items-center"
                   onClick={(e) => {
-                    e.preventDefault()
-                    setSheetMode({
-                      type: 'duplicate',
-                      customerName: order.customerName,
-                    })
+                    e.stopPropagation()
                   }}
-                  style={{ color: 'var(--app-text-mute)' }}
-                  aria-label="Tambah pesanan untuk pelanggan ini"
                 >
-                  <CopyPlus size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setSheetMode({ type: 'edit', orderId: order.id })
-                  }}
-                  style={{ color: 'var(--app-text-mute)' }}
-                  aria-label="Edit pesanan"
-                >
-                  <Pencil size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    togglePaymentStatus(order.id, order.paymentStatus)
-                  }}
-                  className={
-                    order.paymentStatus === 'paid'
-                      ? 'app-badge app-badge-success'
-                      : 'app-badge app-badge-warning'
-                  }
-                >
-                  {order.paymentStatus === 'paid' ? 'Lunas' : 'Belum lunas'}
-                </button>
+                  <select
+                    value={order.paymentStatus}
+                    onChange={(e) => {
+                      e.stopPropagation()
+                      handlePaymentStatusChange(
+                        order.id,
+                        e.target.value as 'unpaid' | 'paid' | 'shipped',
+                      )
+                    }}
+                    className={`cursor-pointer appearance-none rounded-full py-1 pl-2.5 pr-5 text-xs font-semibold outline-none transition-colors border-0 ${
+                      order.paymentStatus === 'paid'
+                        ? 'app-badge-success'
+                        : order.paymentStatus === 'shipped'
+                          ? 'app-badge-info'
+                          : 'app-badge-warning'
+                    }`}
+                  >
+                    <option value="unpaid">Belum lunas</option>
+                    <option value="paid">Lunas</option>
+                    <option value="shipped">Dikirim</option>
+                  </select>
+                  <ChevronDown
+                    size={12}
+                    className="pointer-events-none absolute right-1.5 opacity-60"
+                  />
+                </div>
                 <ChevronRight
                   size={16}
                   style={{ color: 'var(--app-text-mute)' }}
@@ -317,6 +419,41 @@ function EventDetailPage() {
                 >
                   <span>Total</span>
                   <span>{formatIDR(orderTotal)}</span>
+                </div>
+                <div
+                  className="mt-2 flex gap-2 border-t pt-3"
+                  style={{ borderColor: 'var(--app-border)' }}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setSheetMode({ type: 'edit', orderId: order.id })
+                    }}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold"
+                    style={{
+                      borderColor: 'var(--app-border)',
+                      color: 'var(--app-text-soft)',
+                    }}
+                  >
+                    <Pencil size={13} />
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setDeletingOrderId(order.id)
+                    }}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold"
+                    style={{
+                      borderColor: 'var(--app-danger-soft)',
+                      color: 'var(--app-danger)',
+                    }}
+                  >
+                    <Trash2 size={13} />
+                    Hapus
+                  </button>
                 </div>
               </div>
             </details>
@@ -377,6 +514,20 @@ function EventDetailPage() {
           onSubmit={(value) => handleUpdateOrder(editingOrder.id, value)}
         />
       )}
+
+      <ConfirmModal
+        open={Boolean(deletingOrderId)}
+        title="Hapus pesanan ini?"
+        content="Pesanan dan semua item di dalamnya akan dihapus permanen."
+        okText="Ya, hapus"
+        cancelText="Batal"
+        danger={true}
+        loading={isDeleting}
+        onOk={confirmDeleteOrder}
+        onCancel={() => {
+          if (!isDeleting) setDeletingOrderId(null)
+        }}
+      />
     </main>
   )
 }
