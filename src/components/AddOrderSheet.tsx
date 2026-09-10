@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Trash2, User, X } from 'lucide-react'
 import NumberInput from './ui/NumberInput'
 import { findFeeForPrice } from '../lib/fee-tier-validation'
+import { formatPhoneNumber } from '../lib/format'
 
 interface FeeTier {
   minPrice: string
@@ -141,180 +142,203 @@ export default function AddOrderSheet({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60">
       <div
-        className="app-shell mx-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl p-5"
+        className="app-shell mx-auto flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl"
         style={{ borderTop: '1px solid var(--app-border)' }}
       >
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold">{title}</h2>
-          <button
-            onClick={onClose}
-            style={{ color: 'var(--app-text-soft)' }}
-            aria-label="Tutup"
-          >
-            <X size={22} />
-          </button>
-        </div>
-
-        <span
-          className="app-badge mb-4 inline-flex"
-          style={{
-            background: 'var(--app-accent-soft)',
-            color: 'var(--app-accent)',
-          }}
+        <form
+          className="flex min-h-0 flex-1 flex-col"
+          onSubmit={handleSubmit}
         >
-          {eventName}
-        </span>
-
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <label className="relative flex flex-col gap-1 text-sm font-medium">
-            Nama pelanggan
-            <input
-              required
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() =>
-                setTimeout(() => setShowSuggestions(false), 120)
-              }
-              autoComplete="off"
-              className="app-input"
-            />
-            {showSuggestions && filteredCustomers.length > 0 && (
-              <div
-                className="absolute left-0 right-0 top-full z-10 mt-1 max-h-48 overflow-y-auto rounded-xl border shadow-lg"
-                style={{
-                  background: 'var(--app-card)',
-                  borderColor: 'var(--app-border)',
-                }}
+          <div className="min-h-0 flex-1 overflow-y-auto p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold">{title}</h2>
+              <button
+                type="button"
+                onClick={onClose}
+                style={{ color: 'var(--app-text-soft)' }}
+                aria-label="Tutup"
               >
-                {filteredCustomers.map((customer) => (
-                  <button
-                    key={customer.id}
-                    type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      setCustomerName(customerLabel(customer))
-                      setShowSuggestions(false)
+                <X size={22} />
+              </button>
+            </div>
+
+            <span
+              className="app-badge mb-4 inline-flex"
+              style={{
+                background: 'var(--app-accent-soft)',
+                color: 'var(--app-accent)',
+              }}
+            >
+              {eventName}
+            </span>
+
+            <div className="flex flex-col gap-4">
+              <label className="relative flex flex-col gap-1 text-sm font-medium">
+                Nama pelanggan
+                <input
+                  required
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() =>
+                    setTimeout(() => setShowSuggestions(false), 120)
+                  }
+                  autoComplete="off"
+                  className="app-input"
+                />
+                {showSuggestions && filteredCustomers.length > 0 && (
+                  <div
+                    className="absolute left-0 right-0 top-full z-10 mt-1 max-h-48 overflow-y-auto rounded-xl border shadow-lg"
+                    style={{
+                      background: 'var(--app-card)',
+                      borderColor: 'var(--app-border)',
                     }}
-                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm"
                   >
-                    <span className="app-icon-tile h-7 w-7 flex-shrink-0">
-                      <User size={13} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-medium">
-                        {customer.name}
-                      </span>
-                      {customer.phone && (
-                        <span
-                          className="block truncate text-xs"
-                          style={{ color: 'var(--app-text-soft)' }}
-                        >
-                          {customer.phone}
+                    {filteredCustomers.map((customer) => (
+                      <button
+                        key={customer.id}
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          setCustomerName(customerLabel(customer))
+                          setShowSuggestions(false)
+                        }}
+                        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm"
+                      >
+                        <span className="app-icon-tile h-7 w-7 flex-shrink-0">
+                          <User size={13} />
                         </span>
-                      )}
-                    </span>
-                  </button>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-medium">
+                            {customer.name}
+                          </span>
+                          {customer.phone && (
+                            <span
+                              className="block truncate text-xs"
+                              style={{ color: 'var(--app-text-soft)' }}
+                            >
+                              {formatPhoneNumber(customer.phone)}
+                            </span>
+                          )}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </label>
+
+              <div className="flex flex-col gap-3">
+                {items.map((item, index) => (
+                  <div key={index} className="app-card p-3">
+                    <label className="mb-2 flex flex-col gap-1 text-xs">
+                      Nama barang
+                      <input
+                        required
+                        value={item.name}
+                        onChange={(e) =>
+                          updateItem(index, { name: e.target.value })
+                        }
+                        className="app-input"
+                      />
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="flex flex-col gap-1 text-xs">
+                        Harga asli
+                        <NumberInput
+                          required
+                          value={item.originalPrice}
+                          onChange={(originalPrice) =>
+                            updateItem(index, { originalPrice })
+                          }
+                          className="app-input"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-1 text-xs">
+                        Fee jastip
+                        <NumberInput
+                          required
+                          value={item.fee}
+                          onChange={(fee) => updateItem(index, { fee })}
+                          className="app-input"
+                        />
+                      </label>
+                    </div>
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeItem(index)}
+                        className="mt-2 flex items-center gap-1 text-xs font-semibold"
+                        style={{ color: 'var(--app-danger)' }}
+                      >
+                        <Trash2 size={14} />
+                        Hapus barang
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
-            )}
-          </label>
 
-          <div className="flex flex-col gap-3">
-            {items.map((item, index) => (
-              <div key={index} className="app-card p-3">
-                <label className="mb-2 flex flex-col gap-1 text-xs">
-                  Nama barang
-                  <input
-                    required
-                    value={item.name}
+              <button
+                type="button"
+                onClick={addItem}
+                className="app-btn-outline"
+              >
+                + Tambah barang
+              </button>
+
+              <div className="app-card p-3 text-sm">
+                <p>Total harga jual: {totalPrice.toLocaleString('id-ID')}</p>
+                <p>Total fee: {totalFee.toLocaleString('id-ID')}</p>
+                <p className="font-semibold">
+                  Total tagihan:{' '}
+                  {(totalPrice + totalFee).toLocaleString('id-ID')}
+                </p>
+              </div>
+
+              {isEdit && (
+                <label className="flex flex-col gap-1 text-sm font-medium">
+                  Status pembayaran
+                  <select
+                    value={paymentStatus}
                     onChange={(e) =>
-                      updateItem(index, { name: e.target.value })
+                      setPaymentStatus(
+                        e.target.value as 'unpaid' | 'paid' | 'shipped',
+                      )
                     }
                     className="app-input"
-                  />
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="flex flex-col gap-1 text-xs">
-                    Harga asli
-                    <NumberInput
-                      required
-                      value={item.originalPrice}
-                      onChange={(originalPrice) =>
-                        updateItem(index, { originalPrice })
-                      }
-                      className="app-input"
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1 text-xs">
-                    Fee jastip
-                    <NumberInput
-                      required
-                      value={item.fee}
-                      onChange={(fee) => updateItem(index, { fee })}
-                      className="app-input"
-                    />
-                  </label>
-                </div>
-                {items.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeItem(index)}
-                    className="mt-2 flex items-center gap-1 text-xs font-semibold"
-                    style={{ color: 'var(--app-danger)' }}
                   >
-                    <Trash2 size={14} />
-                    Hapus barang
-                  </button>
-                )}
-              </div>
-            ))}
+                    <option value="unpaid">Belum Lunas</option>
+                    <option value="paid">Lunas</option>
+                    <option value="shipped">Dikirim</option>
+                  </select>
+                </label>
+              )}
+            </div>
           </div>
 
-          <button type="button" onClick={addItem} className="app-btn-outline">
-            + Tambah barang
-          </button>
-
-          <div className="app-card p-3 text-sm">
-            <p>Total harga jual: {totalPrice.toLocaleString('id-ID')}</p>
-            <p>Total fee: {totalFee.toLocaleString('id-ID')}</p>
-            <p className="font-semibold">
-              Total tagihan: {(totalPrice + totalFee).toLocaleString('id-ID')}
-            </p>
-          </div>
-
-          {isEdit && (
-            <label className="flex flex-col gap-1 text-sm font-medium">
-              Status pembayaran
-              <select
-                value={paymentStatus}
-                onChange={(e) =>
-                  setPaymentStatus(
-                    e.target.value as 'unpaid' | 'paid' | 'shipped',
-                  )
-                }
-                className="app-input"
-              >
-                <option value="unpaid">Belum Lunas</option>
-                <option value="paid">Lunas</option>
-                <option value="shipped">Dikirim</option>
-              </select>
-            </label>
-          )}
-
-          {error && (
-            <p className="text-sm" style={{ color: 'var(--app-danger)' }}>
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="app-btn-primary"
+          <div
+            className="flex-shrink-0 border-t p-5"
+            style={{
+              borderColor: 'var(--app-border)',
+              background: 'var(--app-card)',
+            }}
           >
-            {isSubmitting ? 'Menyimpan...' : submitLabel}
-          </button>
+            {error && (
+              <p
+                className="mb-3 text-sm"
+                style={{ color: 'var(--app-danger)' }}
+              >
+                {error}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="app-btn-primary w-full"
+            >
+              {isSubmitting ? 'Menyimpan...' : submitLabel}
+            </button>
+          </div>
         </form>
       </div>
     </div>

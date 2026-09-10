@@ -15,10 +15,9 @@ export const Route = createFileRoute('/_app/keuangan')({
 
 function formatIDR(value: string | number) {
   return new Intl.NumberFormat('id-ID', {
-    notation: 'compact',
     style: 'currency',
     currency: 'IDR',
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 0,
   }).format(Number(value))
 }
 

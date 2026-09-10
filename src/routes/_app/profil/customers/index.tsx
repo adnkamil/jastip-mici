@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { queryOptions, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowLeft, Pencil, Phone, Plus, Trash2, User } from 'lucide-react'
+import { formatPhoneNumber } from '../../../../lib/format.ts'
 import CustomerFormModal from '../../../../components/CustomerFormModal'
 import ConfirmModal from '../../../../components/ui/ConfirmModal'
 import {
@@ -88,7 +89,7 @@ function CustomersPage() {
                   style={{ color: 'var(--app-text-soft)' }}
                 >
                   <Phone size={12} />
-                  {customer.phone}
+                  {formatPhoneNumber(customer.phone)}
                 </p>
               )}
             </div>
