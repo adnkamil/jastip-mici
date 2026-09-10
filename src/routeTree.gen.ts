@@ -19,6 +19,7 @@ import { Route as AppEventsNewRouteImport } from './routes/_app/events.new'
 import { Route as AppPesananIndexRouteImport } from './routes/_app/pesanan/index'
 import { Route as AppPesananNewRouteImport } from './routes/_app/pesanan/new'
 import { Route as AppProfilIndexRouteImport } from './routes/_app/profil/index'
+import { Route as AppProfilCustomersIndexRouteImport } from './routes/_app/profil/customers/index'
 import { Route as AppProfilFeeRulesIndexRouteImport } from './routes/_app/profil/fee-rules/index'
 import { Route as AppProfilFeeRulesFeeRuleIdRouteImport } from './routes/_app/profil/fee-rules/$feeRuleId'
 import { Route as AppProfilFeeRulesNewRouteImport } from './routes/_app/profil/fee-rules/new'
@@ -72,6 +73,11 @@ const AppProfilIndexRoute = AppProfilIndexRouteImport.update({
   path: '/profil/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProfilCustomersIndexRoute = AppProfilCustomersIndexRouteImport.update({
+  id: '/profil/customers/',
+  path: '/profil/customers/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProfilFeeRulesIndexRoute = AppProfilFeeRulesIndexRouteImport.update({
   id: '/profil/fee-rules/',
   path: '/profil/fee-rules/',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/profil/': typeof AppProfilIndexRoute
   '/profil/fee-rules/$feeRuleId': typeof AppProfilFeeRulesFeeRuleIdRoute
   '/profil/fee-rules/new': typeof AppProfilFeeRulesNewRoute
+  '/profil/customers/': typeof AppProfilCustomersIndexRoute
   '/profil/fee-rules/': typeof AppProfilFeeRulesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/profil': typeof AppProfilIndexRoute
   '/profil/fee-rules/$feeRuleId': typeof AppProfilFeeRulesFeeRuleIdRoute
   '/profil/fee-rules/new': typeof AppProfilFeeRulesNewRoute
+  '/profil/customers': typeof AppProfilCustomersIndexRoute
   '/profil/fee-rules': typeof AppProfilFeeRulesIndexRoute
 }
 export interface FileRoutesById {
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/_app/profil/': typeof AppProfilIndexRoute
   '/_app/profil/fee-rules/$feeRuleId': typeof AppProfilFeeRulesFeeRuleIdRoute
   '/_app/profil/fee-rules/new': typeof AppProfilFeeRulesNewRoute
+  '/_app/profil/customers/': typeof AppProfilCustomersIndexRoute
   '/_app/profil/fee-rules/': typeof AppProfilFeeRulesIndexRoute
 }
 export interface FileRouteTypes {
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/profil/'
     | '/profil/fee-rules/$feeRuleId'
     | '/profil/fee-rules/new'
+    | '/profil/customers/'
     | '/profil/fee-rules/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/profil'
     | '/profil/fee-rules/$feeRuleId'
     | '/profil/fee-rules/new'
+    | '/profil/customers'
     | '/profil/fee-rules'
   id:
     | '__root__'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/_app/profil/'
     | '/_app/profil/fee-rules/$feeRuleId'
     | '/_app/profil/fee-rules/new'
+    | '/_app/profil/customers/'
     | '/_app/profil/fee-rules/'
   fileRoutesById: FileRoutesById
 }
@@ -257,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfilIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/profil/customers/': {
+      id: '/_app/profil/customers/'
+      path: '/profil/customers'
+      fullPath: '/profil/customers/'
+      preLoaderRoute: typeof AppProfilCustomersIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/profil/fee-rules/': {
       id: '/_app/profil/fee-rules/'
       path: '/profil/fee-rules'
@@ -291,6 +310,7 @@ interface AppRouteChildren {
   AppProfilIndexRoute: typeof AppProfilIndexRoute
   AppProfilFeeRulesFeeRuleIdRoute: typeof AppProfilFeeRulesFeeRuleIdRoute
   AppProfilFeeRulesNewRoute: typeof AppProfilFeeRulesNewRoute
+  AppProfilCustomersIndexRoute: typeof AppProfilCustomersIndexRoute
   AppProfilFeeRulesIndexRoute: typeof AppProfilFeeRulesIndexRoute
 }
 
@@ -304,6 +324,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfilIndexRoute: AppProfilIndexRoute,
   AppProfilFeeRulesFeeRuleIdRoute: AppProfilFeeRulesFeeRuleIdRoute,
   AppProfilFeeRulesNewRoute: AppProfilFeeRulesNewRoute,
+  AppProfilCustomersIndexRoute: AppProfilCustomersIndexRoute,
   AppProfilFeeRulesIndexRoute: AppProfilFeeRulesIndexRoute,
 }
 

@@ -60,6 +60,19 @@ export const feeTiers = pgTable('fee_tiers', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
+// CUSTOMERS (untuk autocomplete Nama Pelanggan saat tambah pesanan)
+export const customers = pgTable('customers', {
+  id: uuid().primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  name: varchar().notNull(),
+  phone: varchar(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at'),
+})
+
 // EVENTS
 export const events = pgTable('events', {
   id: uuid().primaryKey().defaultRandom(),
@@ -126,6 +139,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   feeRules: many(feeRules),
   events: many(events),
   activityLogs: many(activityLogs),
+  customers: many(customers),
 }))
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -165,4 +179,8 @@ export const itemsRelations = relations(items, ({ one }) => ({
 
 export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   user: one(users, { fields: [activityLogs.userId], references: [users.id] }),
+}))
+
+export const customersRelations = relations(customers, ({ one }) => ({
+  user: one(users, { fields: [customers.userId], references: [users.id] }),
 }))

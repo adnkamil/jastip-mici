@@ -5,6 +5,7 @@ import {
   Bell,
   ChevronRight,
   CircleHelp,
+  Contact,
   Download,
   History,
   Info,
@@ -114,6 +115,16 @@ function ProfilPage() {
               to="/profil/fee-rules"
               icon={<Tag size={18} />}
               label="Manajemen Fee"
+            />
+          </div>
+          <div
+            style={{ borderColor: 'var(--app-border)' }}
+            className="border-b"
+          >
+            <RowLink
+              to="/profil/customers"
+              icon={<Contact size={18} />}
+              label="Customer"
             />
           </div>
           <div

@@ -52,7 +52,7 @@ Astra Otoshop).
 - Ringkasan keuangan event: uang masuk, outstanding, estimasi untung bersih.
 - **Dropdown pilih Aturan Fee** untuk event ini (lihat 4.6).
 - Search pelanggan.
-- List pesanan dikelompokkan per customer (accordion), badge status Lunas/Belum Lunas.
+- List pesanan dikelompokkan per customer (accordion), badge status Belum Lunas/Lunas/Dikirim.
 - Expand customer → list item + aksi (Receipt, Tambah, Hapus).
 - Floating action button (+) → buka form Tambah Pesanan.
 
@@ -184,7 +184,7 @@ orders
   id                uuid primary key
   event_id          uuid → events.id
   customer_name     varchar
-  payment_status    enum('unpaid','paid')
+  payment_status    enum('unpaid','paid','shipped')
   created_at        timestamp
   updated_at        timestamp
 
@@ -231,8 +231,11 @@ activity_logs
 ### Logika dashboard keuangan
 
 - **Uang masuk** = `SUM(original_price + fee)` dari items yang order-nya
-  `payment_status = 'paid'`.
+  `payment_status IN ('paid', 'shipped')`.
 - **Outstanding** = sama seperti di atas tapi `payment_status = 'unpaid'`.
+- Status `shipped` ("Dikirim") diperlakukan setara `paid` untuk perhitungan
+  keuangan — dipakai untuk menandai pesanan yang sudah dibayar dan barangnya
+  sudah dikirim ke pelanggan.
 - **Untung bersih** = `SUM(fee)` dari seluruh items (fee jastip = keuntungan
   jastiper).
 

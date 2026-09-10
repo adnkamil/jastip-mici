@@ -24,6 +24,7 @@ import { z } from 'zod'
 import AddOrderSheet from '../../components/AddOrderSheet'
 import { getEventDetail, updateEvent } from '../../lib/events-functions'
 import { listFeeRules } from '../../lib/fee-rules-functions'
+import { listCustomers } from '../../lib/customers-functions'
 import {
   createOrder,
   deleteOrder,
@@ -73,6 +74,7 @@ function EventDetailPage() {
   >(null)
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showEventMenu, setShowEventMenu] = useState(false)
 
   const query = queryOptions({
     queryKey: ['event', eventId],
@@ -85,6 +87,12 @@ function EventDetailPage() {
     queryFn: () => listFeeRules(),
   })
   const { data: feeRules } = useSuspenseQuery(feeRulesQuery)
+
+  const customersQuery = queryOptions({
+    queryKey: ['customers'],
+    queryFn: () => listCustomers(),
+  })
+  const { data: customers } = useSuspenseQuery(customersQuery)
 
   const amountIn = event.orders
     .filter((o) => o.paymentStatus === 'paid' || o.paymentStatus === 'shipped')
@@ -202,7 +210,65 @@ function EventDetailPage() {
             </p>
           </div>
         </div>
-        <MoreVertical size={20} style={{ color: 'var(--app-text-mute)' }} />
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowEventMenu((v) => !v)}
+            className="rounded-full p-1.5 transition-colors"
+            style={{ color: 'var(--app-text-mute)' }}
+            aria-label="Menu event"
+            aria-expanded={showEventMenu}
+          >
+            <MoreVertical size={20} />
+          </button>
+
+          {showEventMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setShowEventMenu(false)}
+                aria-hidden="true"
+              />
+              <div
+                className="absolute right-0 top-full z-20 mt-2 w-72 rounded-2xl border p-4 shadow-xl animate-in fade-in slide-in-from-top-1 duration-150"
+                style={{
+                  background: 'var(--app-card)',
+                  borderColor: 'var(--app-border)',
+                }}
+              >
+                <p
+                  className="mb-2 text-xs font-semibold"
+                  style={{ color: 'var(--app-text-soft)' }}
+                >
+                  Aturan fee jastip untuk event ini
+                </p>
+                <div className="relative">
+                  <span
+                    className="pointer-events-none absolute inset-y-0 left-3 flex items-center"
+                    style={{ color: 'var(--app-accent)' }}
+                  >
+                    <Tag size={16} />
+                  </span>
+                  <select
+                    value={event.feeRule?.id ?? ''}
+                    onChange={(e) => {
+                      handleFeeRuleChange(e.target.value)
+                      setShowEventMenu(false)
+                    }}
+                    className="app-input appearance-none pl-9"
+                  >
+                    <option value="">Belum dipilih</option>
+                    {feeRules.map((rule) => (
+                      <option key={rule.id} value={rule.id}>
+                        {rule.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </header>
 
       <section className="mb-4 grid grid-cols-2 gap-3">
@@ -224,30 +290,6 @@ function EventDetailPage() {
           </p>
         </div>
       </section>
-
-      <p className="mb-2 text-sm" style={{ color: 'var(--app-text-soft)' }}>
-        Aturan fee jastip untuk event ini
-      </p>
-      <div className="relative mb-4">
-        <span
-          className="pointer-events-none absolute inset-y-0 left-3 flex items-center"
-          style={{ color: 'var(--app-accent)' }}
-        >
-          <Tag size={16} />
-        </span>
-        <select
-          value={event.feeRule?.id ?? ''}
-          onChange={(e) => handleFeeRuleChange(e.target.value)}
-          className="app-input appearance-none pl-9"
-        >
-          <option value="">Belum dipilih</option>
-          {feeRules.map((rule) => (
-            <option key={rule.id} value={rule.id}>
-              {rule.name}
-            </option>
-          ))}
-        </select>
-      </div>
 
       <div className="relative mb-3">
         <span
@@ -338,7 +380,10 @@ function EventDetailPage() {
 
       <div className="flex flex-col gap-3">
         {filteredOrders.length === 0 && (
-          <p className="text-sm" style={{ color: 'var(--app-text-soft)' }}>
+          <p
+            className="py-10 text-center text-sm"
+            style={{ color: 'var(--app-text-soft)' }}
+          >
             {statusFilter || search.trim()
               ? 'Tidak ada pesanan yang sesuai filter.'
               : 'Belum ada pesanan.'}
@@ -474,6 +519,7 @@ function EventDetailPage() {
         <AddOrderSheet
           eventName={event.name}
           feeTiers={event.feeRule?.tiers ?? []}
+          customers={customers}
           onClose={() => setSheetMode(null)}
           onSubmit={handleCreateOrder}
         />
@@ -483,6 +529,7 @@ function EventDetailPage() {
         <AddOrderSheet
           eventName={event.name}
           feeTiers={event.feeRule?.tiers ?? []}
+          customers={customers}
           title="Tambah Pesanan"
           submitLabel="Simpan pesanan"
           initialValue={{
@@ -499,6 +546,7 @@ function EventDetailPage() {
         <AddOrderSheet
           eventName={event.name}
           feeTiers={event.feeRule?.tiers ?? []}
+          customers={customers}
           title="Edit Pesanan"
           submitLabel="Simpan perubahan"
           initialValue={{

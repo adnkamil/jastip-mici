@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Trash2, X } from 'lucide-react'
+import { Trash2, User, X } from 'lucide-react'
 import NumberInput from './ui/NumberInput'
 import { findFeeForPrice } from '../lib/fee-tier-validation'
 
@@ -15,6 +15,12 @@ interface ItemDraft {
   fee: number
 }
 
+interface CustomerOption {
+  id: string
+  name: string
+  phone: string | null
+}
+
 export interface AddOrderSheetValue {
   customerName: string
   paymentStatus?: 'unpaid' | 'paid' | 'shipped'
@@ -24,6 +30,7 @@ export interface AddOrderSheetValue {
 interface AddOrderSheetProps {
   eventName: string
   feeTiers: Array<FeeTier>
+  customers?: Array<CustomerOption>
   title?: string
   submitLabel?: string
   initialValue?: AddOrderSheetValue
@@ -40,6 +47,7 @@ const emptyItem: ItemDraft = { name: '', originalPrice: 0, fee: 0 }
 export default function AddOrderSheet({
   eventName,
   feeTiers,
+  customers = [],
   title = 'Tambah Pesanan',
   submitLabel = 'Simpan pesanan',
   initialValue,
@@ -50,6 +58,7 @@ export default function AddOrderSheet({
   const [customerName, setCustomerName] = useState(
     initialValue?.customerName ?? '',
   )
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState<'unpaid' | 'paid' | 'shipped'>(
     initialValue?.paymentStatus ?? 'unpaid',
   )
@@ -89,6 +98,24 @@ export default function AddOrderSheet({
 
   const totalPrice = items.reduce((sum, item) => sum + item.originalPrice, 0)
   const totalFee = items.reduce((sum, item) => sum + item.fee, 0)
+
+  const filteredCustomers = customerName.trim()
+    ? customers
+        .filter((c) => {
+          const query = customerName.trim().toLowerCase()
+          return (
+            c.name.toLowerCase().includes(query) ||
+            (c.phone && c.phone.replace(/\s+/g, '').includes(query.replace(/\s+/g, '')))
+          )
+        })
+        .slice(0, 5)
+    : customers.slice(0, 5)
+
+  function customerLabel(customer: CustomerOption) {
+    if (!customer.phone) return customer.name
+    const last4 = customer.phone.replace(/\D/g, '').slice(-4)
+    return last4 ? `${customer.name} ${last4}` : customer.name
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -139,14 +166,58 @@ export default function AddOrderSheet({
         </span>
 
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <label className="flex flex-col gap-1 text-sm font-medium">
+          <label className="relative flex flex-col gap-1 text-sm font-medium">
             Nama pelanggan
             <input
               required
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() =>
+                setTimeout(() => setShowSuggestions(false), 120)
+              }
+              autoComplete="off"
               className="app-input"
             />
+            {showSuggestions && filteredCustomers.length > 0 && (
+              <div
+                className="absolute left-0 right-0 top-full z-10 mt-1 max-h-48 overflow-y-auto rounded-xl border shadow-lg"
+                style={{
+                  background: 'var(--app-card)',
+                  borderColor: 'var(--app-border)',
+                }}
+              >
+                {filteredCustomers.map((customer) => (
+                  <button
+                    key={customer.id}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault()
+                      setCustomerName(customerLabel(customer))
+                      setShowSuggestions(false)
+                    }}
+                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm"
+                  >
+                    <span className="app-icon-tile h-7 w-7 flex-shrink-0">
+                      <User size={13} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">
+                        {customer.name}
+                      </span>
+                      {customer.phone && (
+                        <span
+                          className="block truncate text-xs"
+                          style={{ color: 'var(--app-text-soft)' }}
+                        >
+                          {customer.phone}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </label>
 
           <div className="flex flex-col gap-3">
