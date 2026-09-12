@@ -24,6 +24,8 @@ import { Route as AppProfilCustomersIndexRouteImport } from './routes/_app/profi
 import { Route as AppProfilFeeRulesIndexRouteImport } from './routes/_app/profil/fee-rules/index'
 import { Route as AppProfilFeeRulesFeeRuleIdRouteImport } from './routes/_app/profil/fee-rules/$feeRuleId'
 import { Route as AppProfilFeeRulesNewRouteImport } from './routes/_app/profil/fee-rules/new'
+import { Route as ApiAuthGoogleIndexRouteImport } from './routes/api/auth/google/index'
+import { Route as ApiAuthGoogleCallbackRouteImport } from './routes/api/auth/google/callback'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -101,6 +103,16 @@ const AppProfilFeeRulesNewRoute = AppProfilFeeRulesNewRouteImport.update({
   path: '/profil/fee-rules/new',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiAuthGoogleIndexRoute = ApiAuthGoogleIndexRouteImport.update({
+  id: '/api/auth/google/',
+  path: '/api/auth/google/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthGoogleCallbackRoute = ApiAuthGoogleCallbackRouteImport.update({
+  id: '/api/auth/google/callback',
+  path: '/api/auth/google/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -115,8 +127,10 @@ export interface FileRoutesByFullPath {
   '/invoice/$eventId/$orderId': typeof AppInvoiceEventIdOrderIdRoute
   '/profil/fee-rules/$feeRuleId': typeof AppProfilFeeRulesFeeRuleIdRoute
   '/profil/fee-rules/new': typeof AppProfilFeeRulesNewRoute
+  '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
   '/profil/customers/': typeof AppProfilCustomersIndexRoute
   '/profil/fee-rules/': typeof AppProfilFeeRulesIndexRoute
+  '/api/auth/google/': typeof ApiAuthGoogleIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -131,8 +145,10 @@ export interface FileRoutesByTo {
   '/invoice/$eventId/$orderId': typeof AppInvoiceEventIdOrderIdRoute
   '/profil/fee-rules/$feeRuleId': typeof AppProfilFeeRulesFeeRuleIdRoute
   '/profil/fee-rules/new': typeof AppProfilFeeRulesNewRoute
+  '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
   '/profil/customers': typeof AppProfilCustomersIndexRoute
   '/profil/fee-rules': typeof AppProfilFeeRulesIndexRoute
+  '/api/auth/google': typeof ApiAuthGoogleIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -149,8 +165,10 @@ export interface FileRoutesById {
   '/_app/invoice/$eventId/$orderId': typeof AppInvoiceEventIdOrderIdRoute
   '/_app/profil/fee-rules/$feeRuleId': typeof AppProfilFeeRulesFeeRuleIdRoute
   '/_app/profil/fee-rules/new': typeof AppProfilFeeRulesNewRoute
+  '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
   '/_app/profil/customers/': typeof AppProfilCustomersIndexRoute
   '/_app/profil/fee-rules/': typeof AppProfilFeeRulesIndexRoute
+  '/api/auth/google/': typeof ApiAuthGoogleIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -167,8 +185,10 @@ export interface FileRouteTypes {
     | '/invoice/$eventId/$orderId'
     | '/profil/fee-rules/$feeRuleId'
     | '/profil/fee-rules/new'
+    | '/api/auth/google/callback'
     | '/profil/customers/'
     | '/profil/fee-rules/'
+    | '/api/auth/google/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -183,8 +203,10 @@ export interface FileRouteTypes {
     | '/invoice/$eventId/$orderId'
     | '/profil/fee-rules/$feeRuleId'
     | '/profil/fee-rules/new'
+    | '/api/auth/google/callback'
     | '/profil/customers'
     | '/profil/fee-rules'
+    | '/api/auth/google'
   id:
     | '__root__'
     | '/_app'
@@ -200,14 +222,18 @@ export interface FileRouteTypes {
     | '/_app/invoice/$eventId/$orderId'
     | '/_app/profil/fee-rules/$feeRuleId'
     | '/_app/profil/fee-rules/new'
+    | '/api/auth/google/callback'
     | '/_app/profil/customers/'
     | '/_app/profil/fee-rules/'
+    | '/api/auth/google/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  ApiAuthGoogleCallbackRoute: typeof ApiAuthGoogleCallbackRoute
+  ApiAuthGoogleIndexRoute: typeof ApiAuthGoogleIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -317,6 +343,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfilFeeRulesNewRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/auth/google/': {
+      id: '/api/auth/google/'
+      path: '/api/auth/google'
+      fullPath: '/api/auth/google/'
+      preLoaderRoute: typeof ApiAuthGoogleIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/google/callback': {
+      id: '/api/auth/google/callback'
+      path: '/api/auth/google/callback'
+      fullPath: '/api/auth/google/callback'
+      preLoaderRoute: typeof ApiAuthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -356,6 +396,8 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  ApiAuthGoogleCallbackRoute: ApiAuthGoogleCallbackRoute,
+  ApiAuthGoogleIndexRoute: ApiAuthGoogleIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

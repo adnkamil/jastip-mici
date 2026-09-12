@@ -54,7 +54,7 @@ export const loginUser = createServerFn({ method: 'POST' })
     const user = await db.query.users.findFirst({
       where: eq(users.email, data.email),
     })
-    if (!user) {
+    if (!user || !user.passwordHash) {
       throw new Error('Email atau password salah')
     }
 

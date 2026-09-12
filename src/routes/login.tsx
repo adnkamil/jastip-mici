@@ -1,14 +1,27 @@
 import { useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Eye, EyeOff, ShoppingBag } from 'lucide-react'
+import { z } from 'zod'
 import { loginUser } from '../lib/auth-functions'
 
+const searchSchema = z.object({
+  error: z.string().optional(),
+})
+
 export const Route = createFileRoute('/login')({
+  validateSearch: searchSchema,
   component: LoginPage,
 })
 
+const GOOGLE_ERROR_MESSAGES: Record<string, string> = {
+  google: 'Gagal masuk dengan Google. Coba lagi ya.',
+  google_state: 'Sesi login Google kedaluwarsa. Coba lagi.',
+  google_config: 'Login Google belum dikonfigurasi di server.',
+}
+
 function LoginPage() {
   const navigate = useNavigate()
+  const { error: googleError } = Route.useSearch()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -124,8 +137,23 @@ function LoginPage() {
         />
       </div>
 
-      <button type="button" className="app-btn-outline">
-        Masuk dengan Google
+      {googleError && GOOGLE_ERROR_MESSAGES[googleError] && (
+        <p
+          className="mb-3 text-center text-sm"
+          style={{ color: 'var(--app-danger)' }}
+        >
+          {GOOGLE_ERROR_MESSAGES[googleError]}
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={() => {
+          window.open('/api/auth/google', '_blank')
+        }}
+        className="app-btn-outline"
+      >
+        Lanjutkan dengan Google
       </button>
 
       <p

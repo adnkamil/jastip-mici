@@ -24,7 +24,8 @@ export const users = pgTable('users', {
   bankName: varchar('bank_name'),
   bankAccountNumber: varchar('bank_account_number'),
   email: varchar().notNull().unique(),
-  passwordHash: varchar('password_hash').notNull(),
+  passwordHash: varchar('password_hash'),
+  googleId: varchar('google_id').unique(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
@@ -98,6 +99,7 @@ export const orders = pgTable('orders', {
     .notNull()
     .references(() => events.id, { onDelete: 'cascade' }),
   customerName: varchar('customer_name').notNull(),
+  customerPhone: varchar('customer_phone'),
   paymentStatus: paymentStatusEnum('payment_status')
     .notNull()
     .default('unpaid'),

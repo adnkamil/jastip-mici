@@ -151,8 +151,14 @@ function RegisterPage() {
         />
       </div>
 
-      <button type="button" className="app-btn-outline">
-        Daftar dengan Google
+      <button
+        type="button"
+        onClick={() => {
+          window.open('/api/auth/google', '_blank')
+        }}
+        className="app-btn-outline"
+      >
+        Lanjutkan dengan Google
       </button>
 
       <p
