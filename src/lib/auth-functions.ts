@@ -73,6 +73,31 @@ export const logoutUser = createServerFn({ method: 'POST' }).handler(
   },
 )
 
+const updateProfileSchema = z.object({
+  name: z.string().min(1, 'Nama wajib diisi'),
+  brandName: z.string().optional(),
+  bankName: z.string().optional(),
+  bankAccountNumber: z.string().optional(),
+})
+
+export const updateProfile = createServerFn({ method: 'POST' })
+  .validator(updateProfileSchema)
+  .handler(async ({ data }) => {
+    const current = await getSessionUser()
+    if (!current) throw new Error('Belum login')
+
+    await db
+      .update(users)
+      .set({
+        name: data.name,
+        brandName: data.brandName?.trim() || null,
+        bankName: data.bankName?.trim() || null,
+        bankAccountNumber: data.bankAccountNumber?.trim() || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, current.id))
+  })
+
 export const fetchCurrentUser = createServerFn({ method: 'GET' }).handler(
   async () => {
     const user = await getSessionUser()
@@ -82,6 +107,8 @@ export const fetchCurrentUser = createServerFn({ method: 'GET' }).handler(
       name: user.name,
       email: user.email,
       brandName: user.brandName,
+      bankName: user.bankName,
+      bankAccountNumber: user.bankAccountNumber,
     }
   },
 )

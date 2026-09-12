@@ -21,6 +21,8 @@ export const users = pgTable('users', {
   id: uuid().primaryKey().defaultRandom(),
   name: varchar().notNull(),
   brandName: varchar('brand_name'),
+  bankName: varchar('bank_name'),
+  bankAccountNumber: varchar('bank_account_number'),
   email: varchar().notNull().unique(),
   passwordHash: varchar('password_hash').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),

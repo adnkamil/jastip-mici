@@ -86,6 +86,7 @@ html,
 body,
 #app {
   min-height: 100%;
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -498,15 +499,21 @@ a {
 
 .app-shell {
   position: relative;
+  min-height: 100vh;
   min-height: 100dvh;
   width: 100%;
   max-width: 480px;
   margin-inline: auto;
   background: var(--app-card);
   color: var(--app-text);
-  box-shadow:
-    0 0 0 1px var(--app-border),
-    0 8px 48px rgba(0, 0, 0, 0.12);
+}
+
+@media (min-width: 481px) {
+  .app-shell {
+    box-shadow:
+      0 0 0 1px var(--app-border),
+      0 8px 48px rgba(0, 0, 0, 0.12);
+  }
 }
 
 .app-card {

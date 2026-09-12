@@ -9,6 +9,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  server: {
+    allowedHosts: ['.ngrok-free.app', '.ngrok-free.dev', '.ngrok.app', '.ngrok.io'],
+  },
   plugins: [
     devtools(),
     tailwindcss(),

@@ -43,7 +43,7 @@ export const createOrder = createServerFn({ method: 'POST' })
       .values({
         eventId: data.eventId,
         customerName: data.customerName,
-        paymentStatus: data.paymentStatus ?? 'unpaid',
+        paymentStatus: data.paymentStatus,
       })
       .returning()
 
@@ -154,4 +154,49 @@ export const deleteItem = createServerFn({ method: 'POST' })
     }
 
     await db.delete(items).where(eq(items.id, data.itemId))
+  })
+
+// Data lengkap untuk halaman tagih/invoice: pastikan order milik event
+// dan event milik user yang sedang login.
+export const getOrderInvoice = createServerFn({ method: 'GET' })
+  .validator(z.object({ eventId: z.uuid(), orderId: z.uuid() }))
+  .handler(async ({ data }) => {
+    const user = await requireUser()
+
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.id, data.orderId),
+      with: { items: true, event: true },
+    })
+    if (!order || order.eventId !== data.eventId) {
+      throw new Error('Pesanan tidak ditemukan')
+    }
+    if (order.event.userId !== user.id) {
+      throw new Error('Pesanan tidak ditemukan')
+    }
+
+    return {
+      order: {
+        id: order.id,
+        customerName: order.customerName,
+        paymentStatus: order.paymentStatus,
+        createdAt: order.createdAt,
+      },
+      event: {
+        id: order.event.id,
+        name: order.event.name,
+        eventDate: order.event.eventDate,
+      },
+      items: order.items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        originalPrice: item.originalPrice,
+        fee: item.fee,
+      })),
+      user: {
+        name: user.name,
+        brandName: user.brandName,
+        bankName: user.bankName,
+        bankAccountNumber: user.bankAccountNumber,
+      },
+    }
   })

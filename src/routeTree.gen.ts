@@ -19,6 +19,7 @@ import { Route as AppEventsNewRouteImport } from './routes/_app/events.new'
 import { Route as AppPesananIndexRouteImport } from './routes/_app/pesanan/index'
 import { Route as AppPesananNewRouteImport } from './routes/_app/pesanan/new'
 import { Route as AppProfilIndexRouteImport } from './routes/_app/profil/index'
+import { Route as AppInvoiceEventIdOrderIdRouteImport } from './routes/_app/invoice.$eventId.$orderId'
 import { Route as AppProfilCustomersIndexRouteImport } from './routes/_app/profil/customers/index'
 import { Route as AppProfilFeeRulesIndexRouteImport } from './routes/_app/profil/fee-rules/index'
 import { Route as AppProfilFeeRulesFeeRuleIdRouteImport } from './routes/_app/profil/fee-rules/$feeRuleId'
@@ -73,6 +74,12 @@ const AppProfilIndexRoute = AppProfilIndexRouteImport.update({
   path: '/profil/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInvoiceEventIdOrderIdRoute =
+  AppInvoiceEventIdOrderIdRouteImport.update({
+    id: '/invoice/$eventId/$orderId',
+    path: '/invoice/$eventId/$orderId',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppProfilCustomersIndexRoute = AppProfilCustomersIndexRouteImport.update({
   id: '/profil/customers/',
   path: '/profil/customers/',
@@ -105,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/pesanan/new': typeof AppPesananNewRoute
   '/pesanan/': typeof AppPesananIndexRoute
   '/profil/': typeof AppProfilIndexRoute
+  '/invoice/$eventId/$orderId': typeof AppInvoiceEventIdOrderIdRoute
   '/profil/fee-rules/$feeRuleId': typeof AppProfilFeeRulesFeeRuleIdRoute
   '/profil/fee-rules/new': typeof AppProfilFeeRulesNewRoute
   '/profil/customers/': typeof AppProfilCustomersIndexRoute
@@ -120,6 +128,7 @@ export interface FileRoutesByTo {
   '/pesanan/new': typeof AppPesananNewRoute
   '/pesanan': typeof AppPesananIndexRoute
   '/profil': typeof AppProfilIndexRoute
+  '/invoice/$eventId/$orderId': typeof AppInvoiceEventIdOrderIdRoute
   '/profil/fee-rules/$feeRuleId': typeof AppProfilFeeRulesFeeRuleIdRoute
   '/profil/fee-rules/new': typeof AppProfilFeeRulesNewRoute
   '/profil/customers': typeof AppProfilCustomersIndexRoute
@@ -137,6 +146,7 @@ export interface FileRoutesById {
   '/_app/pesanan/new': typeof AppPesananNewRoute
   '/_app/pesanan/': typeof AppPesananIndexRoute
   '/_app/profil/': typeof AppProfilIndexRoute
+  '/_app/invoice/$eventId/$orderId': typeof AppInvoiceEventIdOrderIdRoute
   '/_app/profil/fee-rules/$feeRuleId': typeof AppProfilFeeRulesFeeRuleIdRoute
   '/_app/profil/fee-rules/new': typeof AppProfilFeeRulesNewRoute
   '/_app/profil/customers/': typeof AppProfilCustomersIndexRoute
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/pesanan/new'
     | '/pesanan/'
     | '/profil/'
+    | '/invoice/$eventId/$orderId'
     | '/profil/fee-rules/$feeRuleId'
     | '/profil/fee-rules/new'
     | '/profil/customers/'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/pesanan/new'
     | '/pesanan'
     | '/profil'
+    | '/invoice/$eventId/$orderId'
     | '/profil/fee-rules/$feeRuleId'
     | '/profil/fee-rules/new'
     | '/profil/customers'
@@ -185,6 +197,7 @@ export interface FileRouteTypes {
     | '/_app/pesanan/new'
     | '/_app/pesanan/'
     | '/_app/profil/'
+    | '/_app/invoice/$eventId/$orderId'
     | '/_app/profil/fee-rules/$feeRuleId'
     | '/_app/profil/fee-rules/new'
     | '/_app/profil/customers/'
@@ -269,6 +282,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfilIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/invoice/$eventId/$orderId': {
+      id: '/_app/invoice/$eventId/$orderId'
+      path: '/invoice/$eventId/$orderId'
+      fullPath: '/invoice/$eventId/$orderId'
+      preLoaderRoute: typeof AppInvoiceEventIdOrderIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/profil/customers/': {
       id: '/_app/profil/customers/'
       path: '/profil/customers'
@@ -308,6 +328,7 @@ interface AppRouteChildren {
   AppPesananNewRoute: typeof AppPesananNewRoute
   AppPesananIndexRoute: typeof AppPesananIndexRoute
   AppProfilIndexRoute: typeof AppProfilIndexRoute
+  AppInvoiceEventIdOrderIdRoute: typeof AppInvoiceEventIdOrderIdRoute
   AppProfilFeeRulesFeeRuleIdRoute: typeof AppProfilFeeRulesFeeRuleIdRoute
   AppProfilFeeRulesNewRoute: typeof AppProfilFeeRulesNewRoute
   AppProfilCustomersIndexRoute: typeof AppProfilCustomersIndexRoute
@@ -322,6 +343,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPesananNewRoute: AppPesananNewRoute,
   AppPesananIndexRoute: AppPesananIndexRoute,
   AppProfilIndexRoute: AppProfilIndexRoute,
+  AppInvoiceEventIdOrderIdRoute: AppInvoiceEventIdOrderIdRoute,
   AppProfilFeeRulesFeeRuleIdRoute: AppProfilFeeRulesFeeRuleIdRoute,
   AppProfilFeeRulesNewRoute: AppProfilFeeRulesNewRoute,
   AppProfilCustomersIndexRoute: AppProfilCustomersIndexRoute,

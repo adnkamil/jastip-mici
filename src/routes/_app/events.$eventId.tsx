@@ -8,17 +8,15 @@ import {
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeft,
-  Check,
   ChevronDown,
   ChevronRight,
   MoreVertical,
   Pencil,
   Plus,
+  ReceiptText,
   Search,
-  Settings,
   Tag,
   Trash2,
-  X,
 } from 'lucide-react'
 import { z } from 'zod'
 import AddOrderSheet from '../../components/AddOrderSheet'
@@ -468,6 +466,22 @@ function EventDetailPage() {
                   className="mt-2 flex gap-2 border-t pt-3"
                   style={{ borderColor: 'var(--app-border)' }}
                 >
+                  {order.paymentStatus === 'unpaid' && (
+                    <Link
+                      to="/invoice/$eventId/$orderId"
+                      params={{ eventId, orderId: order.id }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold no-underline"
+                      style={{
+                        borderColor: 'var(--app-accent-soft)',
+                        color: 'var(--app-accent)',
+                        background: 'var(--app-accent-soft)',
+                      }}
+                    >
+                      <ReceiptText size={13} />
+                      Tagih
+                    </Link>
+                  )}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -505,14 +519,16 @@ function EventDetailPage() {
         })}
       </div>
 
-      <button
-        onClick={() => setSheetMode({ type: 'create' })}
-        className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg"
-        style={{ background: 'var(--app-accent)' }}
-        aria-label="Tambah Pesanan"
-      >
-        <Plus size={26} />
-      </button>
+      <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 mx-auto flex max-w-lg justify-end px-6">
+        <button
+          onClick={() => setSheetMode({ type: 'create' })}
+          className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg"
+          style={{ background: 'var(--app-accent)' }}
+          aria-label="Tambah Pesanan"
+        >
+          <Plus size={26} />
+        </button>
+      </div>
 
       {sheetMode?.type === 'create' && (
         <AddOrderSheet

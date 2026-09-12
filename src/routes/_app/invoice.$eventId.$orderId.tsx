@@ -1,0 +1,292 @@
+import { useState } from 'react'
+import { queryOptions, useSuspenseQuery } from '@tanstack/react-query'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { ArrowLeft, Check, Copy, Landmark, Printer } from 'lucide-react'
+import { getOrderInvoice } from '../../lib/orders-functions'
+
+export const Route = createFileRoute('/_app/invoice/$eventId/$orderId')({
+  loader: ({ context, params }) => {
+    const query = queryOptions({
+      queryKey: ['invoice', params.eventId, params.orderId],
+      queryFn: () =>
+        getOrderInvoice({
+          data: { eventId: params.eventId, orderId: params.orderId },
+        }),
+    })
+    return context.queryClient.ensureQueryData(query)
+  },
+  component: InvoicePage,
+})
+
+function formatIDR(value: string | number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(Number(value))
+}
+
+const statusLabel: Record<string, string> = {
+  unpaid: 'Belum Lunas',
+  paid: 'Lunas',
+  shipped: 'Dikirim',
+}
+
+function InvoicePage() {
+  const { eventId, orderId } = Route.useParams()
+  const [copied, setCopied] = useState(false)
+
+  const query = queryOptions({
+    queryKey: ['invoice', eventId, orderId],
+    queryFn: () => getOrderInvoice({ data: { eventId, orderId } }),
+  })
+  const { data } = useSuspenseQuery(query)
+
+  const subtotal = data.items.reduce(
+    (sum, item) => sum + Number(item.originalPrice),
+    0,
+  )
+  const totalFee = data.items.reduce((sum, item) => sum + Number(item.fee), 0)
+  const total = subtotal + totalFee
+
+  const invoiceNo = data.order.id.slice(0, 8).toUpperCase()
+  const invoiceDate = new Date(data.order.createdAt).toLocaleDateString(
+    'id-ID',
+    {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    },
+  )
+  const bankText =
+    data.user.bankName && data.user.bankAccountNumber
+      ? data.user.bankAccountNumber
+      : null
+
+  async function copyText(text: string) {
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    setCopied(true)
+    setTimeout(() => {
+      setCopied(false)
+    }, 2000)
+  }
+
+  const completed = data.order.paymentStatus !== 'unpaid'
+
+  return (
+    <main className="app-shell relative mx-auto min-h-screen max-w-lg px-4 pb-10 pt-6">
+      <header className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link to="/events/$eventId" params={{ eventId }}>
+            <ArrowLeft size={22} style={{ color: 'var(--app-text)' }} />
+          </Link>
+          <h1 className="text-lg font-bold">Tagih Pesanan</h1>
+        </div>
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold"
+          style={{
+            borderColor: 'var(--app-border)',
+            color: 'var(--app-text-soft)',
+          }}
+        >
+          <Printer size={14} />
+          Cetak
+        </button>
+      </header>
+
+      {completed && (
+        <div
+          className="mb-4 rounded-xl border px-4 py-3 text-sm font-medium"
+          style={{
+            borderColor: 'var(--app-success-soft)',
+            background: 'var(--app-success-soft)',
+            color: 'var(--app-success)',
+          }}
+        >
+          Pesanan ini sudah{' '}
+          {data.order.paymentStatus === 'paid' ? 'lunas' : 'dikirim'} — invoice
+          ditampilkan untuk arsip.
+        </div>
+      )}
+
+
+{/* ====== INVOICE CARD ====== */}
+      <div className="app-card mb-4 overflow-hidden">
+        {/* Header */}
+        <div
+          className="flex items-center justify-between p-5"
+          style={{ background: 'var(--app-accent-soft)' }}
+        >
+          <div>
+            <p className="text-lg font-bold">
+              {data.user.brandName || data.user.name}
+            </p>
+            <p className="text-xs" style={{ color: 'var(--app-text-soft)' }}>
+              INVOICE · {invoiceNo}
+            </p>
+          </div>
+          <span
+            className="app-icon-tile h-11 w-11"
+            style={{ borderRadius: 999 }}
+          >
+            <Landmark size={20} />
+          </span>
+        </div>
+
+        {/* Info order */}
+        <div
+          className="flex flex-col gap-1.5 border-b p-5 pb-4"
+          style={{ borderColor: 'var(--app-border)' }}
+        >
+          <p className="text-sm font-semibold">
+            Untuk: {data.order.customerName}
+          </p>
+          <p className="text-xs" style={{ color: 'var(--app-text-soft)' }}>
+            Event: {data.event.name}
+          </p>
+          <p className="text-xs" style={{ color: 'var(--app-text-soft)' }}>
+            Tanggal invoice: {invoiceDate}
+          </p>
+        </div>
+
+        {/* Items */}
+        <div className="flex flex-col gap-1 p-5 pb-4">
+          <div
+            className="mb-1 flex justify-between text-xs font-semibold"
+            style={{ color: 'var(--app-text-mute)' }}
+          >
+            <span>Barang</span>
+            <span>Harga Jual</span>
+          </div>
+          {data.items.map((item) => (
+            <div
+              key={item.id}
+              className="flex justify-between gap-3 py-1 text-sm"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate">{item.name}</p>
+                <p className="text-xs" style={{ color: 'var(--app-text-mute)' }}>
+                  Harga {formatIDR(item.originalPrice)} + Fee{' '}
+                  {formatIDR(item.fee)}
+                </p>
+              </div>
+              <p className="font-medium">
+                {formatIDR(Number(item.originalPrice) + Number(item.fee))}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Total */}
+        <div
+          className="flex flex-col gap-1 border-t p-5 pt-3"
+          style={{ borderColor: 'var(--app-border)' }}
+        >
+          <div className="flex justify-between text-sm">
+            <span style={{ color: 'var(--app-text-soft)' }}>Subtotal</span>
+            <span>{formatIDR(subtotal)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span style={{ color: 'var(--app-text-soft)' }}>Fee jastip</span>
+            <span>{formatIDR(totalFee)}</span>
+          </div>
+          <div
+            className="mt-2 flex items-center justify-between border-t pt-3"
+            style={{ borderColor: 'var(--app-border)' }}
+          >
+            <span className="font-bold">Total Tagihan</span>
+            <span
+              className="text-lg font-bold"
+              style={{ color: 'var(--app-accent)' }}
+            >
+              {formatIDR(total)}
+            </span>
+          </div>
+        </div>
+      </div>
+{/* ====== PEMBAYARAN ====== */}
+      <div className="app-card mb-4 p-5">
+        <p className="mb-1 text-sm font-bold">Pembayaran</p>
+        {bankText ? (
+          <>
+            <p className="mb-3 text-xs" style={{ color: 'var(--app-text-soft)' }}>
+              Silakan transfer ke rekening berikut, lalu konfirmasi pembayaran.
+            </p>
+            <div
+              className="flex items-center gap-3 rounded-xl p-4"
+              style={{ background: 'var(--app-accent-soft)' }}
+            >
+              <span
+                className="app-icon-tile h-10 w-10 flex-shrink-0"
+                style={{ borderRadius: 999 }}
+              >
+                <Landmark size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p
+                  className="text-xs font-semibold"
+                  style={{ color: 'var(--app-accent)' }}
+                >
+                  {data.user.bankName}
+                </p>
+                <p className="truncate text-base font-bold tracking-wide">
+                  {data.user.bankAccountNumber}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyText(bankText)}
+                className="flex flex-shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white"
+                style={{ background: 'var(--app-accent)' }}
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+                {copied ? 'Tersalin!' : 'Salin'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <p className="text-xs" style={{ color: 'var(--app-danger)' }}>
+            No. rekening belum diatur. Tambahkan lewat menu Profil → Pembayaran
+            agar pelanggan bisa transfer.
+          </p>
+        )}
+      </div>
+
+      {/* ====== STATUS ====== */}
+      <div className="app-card flex items-center justify-between p-5">
+        <span className="text-sm font-semibold">Status Pembayaran</span>
+        <span
+          className={`app-badge ${
+            data.order.paymentStatus === 'unpaid'
+              ? 'app-badge-warning'
+              : data.order.paymentStatus === 'paid'
+                ? 'app-badge-success'
+                : 'app-badge-info'
+          }`}
+        >
+          {statusLabel[data.order.paymentStatus]}
+        </span>
+      </div>
+
+      <p
+        className="mt-6 text-center text-xs"
+        style={{ color: 'var(--app-text-mute)' }}
+      >
+        Terima kasih sudah berbelanja di {data.user.brandName || data.user.name}
+      </p>
+    </main>
+  )
+}

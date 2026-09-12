@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
-import { queryOptions, useSuspenseQuery } from '@tanstack/react-query'
+import {
+  queryOptions,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   Bell,
@@ -9,13 +13,19 @@ import {
   Download,
   History,
   Info,
+  Landmark,
   LogOut,
   Moon,
   SlidersHorizontal,
   Tag,
 } from 'lucide-react'
+import BankAccountModal from '../../../components/BankAccountModal'
 import Switch from '../../../components/ui/Switch'
-import { fetchCurrentUser, logoutUser } from '../../../lib/auth-functions'
+import {
+  fetchCurrentUser,
+  logoutUser,
+  updateProfile,
+} from '../../../lib/auth-functions'
 
 const currentUserQuery = queryOptions({
   queryKey: ['current-user'],
@@ -72,11 +82,29 @@ function RowLink({
 function ProfilPage() {
   const { data: user } = useSuspenseQuery(currentUserQuery)
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [isDark, toggleDark] = useDarkModePreference()
+  const [showBankModal, setShowBankModal] = useState(false)
 
   async function handleLogout() {
     await logoutUser()
     await navigate({ to: '/login' })
+  }
+
+  async function handleSaveBank(data: {
+    bankName: string
+    bankAccountNumber: string
+  }) {
+    await updateProfile({
+      data: {
+        name: user?.name ?? '',
+        brandName: user?.brandName ?? undefined,
+        bankName: data.bankName,
+        bankAccountNumber: data.bankAccountNumber,
+      },
+    })
+    await queryClient.invalidateQueries({ queryKey: ['current-user'] })
+    setShowBankModal(false)
   }
 
   return (
@@ -142,6 +170,42 @@ function ProfilPage() {
             icon={<History size={18} />}
             label="Activity Logs"
           />
+        </div>
+      </section>
+
+      <section className="mb-6">
+        <h2
+          className="mb-2 text-xs font-semibold uppercase"
+          style={{ color: 'var(--app-text-mute)' }}
+        >
+          Pembayaran
+        </h2>
+        <div
+          className="app-card flex flex-col"
+          style={{ borderColor: 'var(--app-border)' }}
+        >
+          <button
+            type="button"
+            onClick={() => setShowBankModal(true)}
+            className="flex w-full items-center gap-3 px-4 py-3 text-left no-underline"
+            style={{ color: 'var(--app-text)' }}
+          >
+            <span style={{ color: 'var(--app-text-soft)' }}>
+              <Landmark size={18} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block">No. Rekening</span>
+              <span
+                className="block truncate text-xs font-normal"
+                style={{ color: 'var(--app-text-soft)' }}
+              >
+                {user?.bankName && user.bankAccountNumber
+                  ? `${user.bankName} ${user.bankAccountNumber}`
+                  : 'Belum diatur — tampil di invoice tagih'}
+              </span>
+            </span>
+            <ChevronRight size={18} style={{ color: 'var(--app-text-mute)' }} />
+          </button>
         </div>
       </section>
 
@@ -231,6 +295,19 @@ function ProfilPage() {
         <LogOut size={18} />
         Keluar
       </button>
+
+      {showBankModal && (
+        <BankAccountModal
+          title="No. Rekening"
+          submitLabel="Simpan"
+          initialValue={{
+            bankName: user?.bankName ?? '',
+            bankAccountNumber: user?.bankAccountNumber ?? '',
+          }}
+          onClose={() => setShowBankModal(false)}
+          onSubmit={handleSaveBank}
+        />
+      )}
     </main>
   )
 }
