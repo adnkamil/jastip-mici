@@ -20,6 +20,7 @@ import {
   Tag,
 } from 'lucide-react'
 import BankAccountModal from '../../../components/BankAccountModal'
+import EditProfileModal from '../../../components/EditProfileModal'
 import Switch from '../../../components/ui/Switch'
 import {
   fetchCurrentUser,
@@ -85,10 +86,24 @@ function ProfilPage() {
   const queryClient = useQueryClient()
   const [isDark, toggleDark] = useDarkModePreference()
   const [showBankModal, setShowBankModal] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
 
   async function handleLogout() {
     await logoutUser()
     await navigate({ to: '/login' })
+  }
+
+  async function handleSaveProfile(data: { name: string; brandName: string }) {
+    await updateProfile({
+      data: {
+        name: data.name,
+        brandName: data.brandName,
+        bankName: user?.bankName ?? undefined,
+        bankAccountNumber: user?.bankAccountNumber ?? undefined,
+      },
+    })
+    await queryClient.invalidateQueries({ queryKey: ['current-user'] })
+    setShowProfileModal(false)
   }
 
   async function handleSaveBank(data: {
@@ -111,7 +126,11 @@ function ProfilPage() {
     <main className="mx-auto max-w-lg px-4 pb-8 pt-6">
       <h1 className="mb-6 text-xl font-bold">Profil</h1>
 
-      <div className="app-card mb-6 flex items-center gap-3 p-4">
+      <button
+        type="button"
+        onClick={() => setShowProfileModal(true)}
+        className="app-card mb-6 flex w-full items-center gap-3 p-4 text-left"
+      >
         <div className="app-avatar h-14 w-14 text-xl">
           {user?.name.at(0)?.toUpperCase() ?? '?'}
         </div>
@@ -122,7 +141,7 @@ function ProfilPage() {
           </p>
         </div>
         <ChevronRight size={18} style={{ color: 'var(--app-text-mute)' }} />
-      </div>
+      </button>
 
       <section className="mb-6">
         <h2
@@ -306,6 +325,19 @@ function ProfilPage() {
           }}
           onClose={() => setShowBankModal(false)}
           onSubmit={handleSaveBank}
+        />
+      )}
+
+      {showProfileModal && (
+        <EditProfileModal
+          title="Edit Profil"
+          submitLabel="Simpan"
+          initialValue={{
+            name: user?.name ?? '',
+            brandName: user?.brandName ?? '',
+          }}
+          onClose={() => setShowProfileModal(false)}
+          onSubmit={handleSaveProfile}
         />
       )}
     </main>

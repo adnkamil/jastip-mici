@@ -17,7 +17,7 @@ function AppLayout() {
   const showBottomNav = useShowBottomNav()
 
   return (
-    <div className="app-shell pb-20">
+    <div className="app-shell">
       <Outlet />
       {showBottomNav && <BottomNav />}
     </div>
